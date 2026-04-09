@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartDD™</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&family=Playfair+Display:wght@400;600;700&family=Frank+Ruhl+Libre:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#06060b;--card:#111118;--card2:#16161f;
+  --gold:#c9a96e;--gold2:#e0c992;--goldd:#8a7344;
+  --t1:#e8e6e1;--t2:#9a9890;--t3:#5a584f;
+  --red:#c0392b;--reds:#e74c3c;
+  --yel:#e8b517;--yels:#f5d04a;
+  --grn:#27ae60;--grns:#2ecc71;
+  --fd:'Playfair Display','Frank Ruhl Libre',serif;
+  --fb:'Heebo',sans-serif;
+  --e:cubic-bezier(.4,0,.2,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--t1);font-family:var(--fb)}
+
+/* Force dark bg on slides — ensures correct display even inside white-bg viewers like Claude preview */
+.sl{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;opacity:0;pointer-events:none;transition:opacity .7s var(--e);padding:45px 55px 80px;overflow-y:auto;overflow-x:hidden;background:#06060b;color:#e8e6e1}
+.sl.on{opacity:1;pointer-events:auto}
+.a{opacity:0;transform:translateY(20px);transition:opacity .7s var(--e),transform .7s var(--e)}
+.sl.on .a{opacity:1;transform:translateY(0)}
+.sl.on .d1{transition-delay:.1s}.sl.on .d2{transition-delay:.22s}.sl.on .d3{transition-delay:.34s}
+.sl.on .d4{transition-delay:.46s}.sl.on .d5{transition-delay:.58s}.sl.on .d6{transition-delay:.7s}
+.sl.on .d7{transition-delay:.82s}.sl.on .d8{transition-delay:.94s}.sl.on .d9{transition-delay:1.06s}
+.sl.on .d10{transition-delay:1.18s}
+
+/* NAV */
+.pbar{position:fixed;top:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--gold2));z-index:1001;transition:width .5s var(--e)}
+.albl{position:fixed;top:16px;right:26px;font-size:10px;letter-spacing:3px;color:var(--t3);text-transform:uppercase;z-index:999;direction:ltr}
+.nbar{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:1000;padding:6px 14px;background:#06060b;backdrop-filter:blur(20px);border-radius:24px;border:1px solid rgba(201,169,110,.1)}
+.nd{width:7px;height:7px;border-radius:50%;background:var(--t3);cursor:pointer;transition:all .3s;border:none;outline:none}
+.nd.on{background:var(--gold);box-shadow:0 0 8px rgba(201,169,110,.5);transform:scale(1.4)}
+.nd:hover{background:var(--goldd)}
+.nd.sep{width:15px;border-radius:3px}
+.na{position:fixed;top:50%;transform:translateY(-50%);width:40px;height:40px;border:1px solid rgba(201,169,110,.1);background:#06060b;color:var(--gold);font-size:16px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .3s;backdrop-filter:blur(10px);z-index:1000}
+.na:hover{background:rgba(201,169,110,.1);border-color:var(--gold)}
+.na.p{right:16px}.na.n{left:16px}
+
+/* COMMON */
+.center{text-align:center}
+.maxw{max-width:820px}
+.maxw2{max-width:1100px;width:100%}
+
+/* TITLE SLIDE */
+.ts{position:relative}
+.ts::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 40% 45%,rgba(201,169,110,.04) 0%,transparent 65%)}
+.tlogo{font-family:var(--fd);font-size:clamp(48px,8vw,78px);font-weight:700;letter-spacing:3px;position:relative;z-index:1}
+.tlogo b{color:var(--gold);font-weight:700}
+.ttag{font-size:clamp(17px,2.3vw,23px);font-weight:300;color:var(--t2);margin-top:8px;letter-spacing:1px;position:relative;z-index:1}
+.tln{width:55px;height:1px;background:var(--gold);margin:26px auto;position:relative;z-index:1}
+.tsub{font-size:13px;color:var(--t3);font-weight:300;direction:ltr;position:relative;z-index:1}
+
+/* PAIN SLIDES */
+.pw{text-align:center;max-width:800px}
+.pn{font-family:var(--fd);font-size:clamp(50px,10vw,100px);font-weight:700;color:var(--gold);line-height:1}
+.pu{font-size:19px;color:var(--goldd);margin-top:6px}
+.pd{font-size:clamp(16px,2vw,22px);font-weight:300;line-height:1.8;margin-top:18px}
+.pno{font-size:12px;color:var(--t3);margin-top:14px;line-height:1.6}
+
+/* QUESTION */
+.question{font-size:clamp(26px,4vw,40px);font-weight:300;text-align:center;max-width:780px;line-height:1.7}
+.question em{font-style:normal;color:var(--gold);font-weight:700}
+
+/* RISK TYPES */
+.riskwrap{text-align:center;max-width:850px}
+.risktitle{font-size:clamp(22px,3.5vw,34px);font-weight:700;margin-bottom:36px}
+.riskcards{display:flex;gap:20px;flex-wrap:wrap;justify-content:center}
+.riskcard{background:var(--card);border-radius:12px;padding:28px 24px;flex:1;min-width:220px;max-width:280px;border:1px solid rgba(255,255,255,.04);text-align:center}
+.riskcard-icon{font-size:36px;margin-bottom:14px}
+.riskcard-title{font-size:16px;font-weight:700;margin-bottom:8px;color:var(--t1)}
+.riskcard-desc{font-size:13px;color:var(--t2);line-height:1.6}
+
+/* LAYER SLIDES */
+.layer-wrap{max-width:1000px;width:100%}
+.layer-badge{display:inline-block;font-size:11px;letter-spacing:2px;color:var(--gold);border:1px solid rgba(201,169,110,.2);padding:4px 14px;border-radius:20px;margin-bottom:16px;text-transform:uppercase}
+.layer-title{font-size:clamp(22px,3.5vw,32px);font-weight:700;margin-bottom:10px}
+.layer-sub{font-size:16px;color:var(--t2);line-height:1.6;margin-bottom:30px;max-width:700px}
+
+/* FLAGS DEMO */
+.flag-demo{display:flex;flex-direction:column;gap:12px}
+.flag-item{display:flex;align-items:flex-start;gap:14px;padding:16px 20px;background:var(--card);border-radius:10px;border:1px solid rgba(255,255,255,.04)}
+.flag-item.rf{border-right:3px solid var(--red)}
+.flag-item.yf{border-right:3px solid var(--yel)}
+.flag-item.gf{border-right:3px solid var(--grn)}
+.flag-circle{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:2px}
+.flag-circle.r{background:rgba(192,57,43,.12);color:var(--reds)}
+.flag-circle.y{background:rgba(212,160,23,.12);color:var(--yels)}
+.flag-circle.g{background:rgba(39,174,96,.12);color:var(--grns)}
+.flag-body{flex:1}
+.flag-cat{font-size:11px;color:var(--gold);font-weight:600;letter-spacing:.5px;margin-bottom:2px}
+.flag-text{font-size:14px;line-height:1.6}
+.flag-action{font-size:12px;color:var(--t2);margin-top:3px}
+.flag-msg{text-align:center;font-size:14px;color:var(--t2);margin-top:20px;font-style:italic}
+
+/* CROSS REF */
+.xref-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.xref-card{background:var(--card);border-radius:10px;padding:22px;border:1px solid rgba(255,255,255,.04)}
+.xref-card-title{font-size:15px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.xref-card-icon{font-size:20px}
+.xref-card-desc{font-size:13px;color:var(--t2);line-height:1.6}
+.xref-card-example{font-size:12px;color:var(--t1);margin-top:10px;padding:10px 14px;background:rgba(201,169,110,.04);border-radius:6px;border-right:2px solid var(--gold);line-height:1.5}
+.xref-msg{text-align:center;font-size:14px;color:var(--t2);margin-top:20px;font-style:italic}
+
+/* FINANCIAL BONUS */
+.fin-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fin-card{background:var(--card);border-radius:10px;padding:20px;border:1px solid rgba(255,255,255,.04);border-top:2px solid var(--gold)}
+.fin-card-title{font-size:14px;font-weight:600;margin-bottom:6px}
+.fin-card-finding{font-size:13px;color:var(--t2);line-height:1.5}
+.fin-card-flag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;margin-top:8px}
+.fin-card-flag.r{background:rgba(192,57,43,.12);color:var(--reds)}
+.fin-card-flag.y{background:rgba(212,160,23,.12);color:var(--yels)}
+.fin-msg{text-align:center;font-size:15px;color:var(--gold);margin-top:24px;font-weight:500}
+
+/* REPORT */
+.rpt-head{text-align:center;margin-bottom:18px}
+.rpt-title{font-size:clamp(20px,3vw,26px);font-weight:700}
+.rpt-sub{font-size:13px;color:var(--t2);margin-top:4px}
+.rpt-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.rpt-stat{background:var(--card);border-radius:10px;padding:18px;text-align:center;border:1px solid rgba(255,255,255,.04)}
+.rpt-val{font-family:var(--fd);font-size:40px;font-weight:700}
+.rpt-val.r{color:var(--reds)}.rpt-val.y{color:var(--yels)}.rpt-val.g{color:var(--grns)}
+.rpt-lbl{font-size:12px;color:var(--t2);margin-top:2px}
+.rpt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.rpt-mod{background:var(--card);border-radius:10px;padding:16px;cursor:pointer;border:1px solid rgba(255,255,255,.04);transition:all .3s var(--e)}
+.rpt-mod:hover{background:var(--card2);border-color:rgba(201,169,110,.2);transform:translateY(-2px)}
+.rpt-mod-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.rpt-mod-name{font-size:14px;font-weight:600}
+.rpt-mod-risk{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500}
+.rpt-mod-risk.rh{background:rgba(192,57,43,.12);color:var(--reds)}
+.rpt-mod-risk.rm{background:rgba(212,160,23,.12);color:var(--yels)}
+.rpt-mod-risk.rl{background:rgba(39,174,96,.12);color:var(--grns)}
+.rpt-mod-desc{font-size:11px;color:var(--t2);line-height:1.5}
+.rpt-mod-badges{display:flex;gap:4px;margin-top:8px;direction:ltr}
+.rb{font-size:10px;padding:2px 6px;border-radius:6px}
+.rb.r{background:rgba(192,57,43,.1);color:var(--reds)}
+.rb.y{background:rgba(212,160,23,.1);color:var(--yels)}
+.rb.g{background:rgba(39,174,96,.1);color:var(--grns)}
+.rpt-mod-cta{font-size:10px;color:var(--gold);margin-top:8px;opacity:0;transition:opacity .3s}
+.rpt-mod:hover .rpt-mod-cta{opacity:1}
+.rpt-note{text-align:center;font-size:12px;color:var(--t3);margin-top:14px}
+
+/* OVERLAY */
+.ov{position:fixed;inset:0;background:#06060b;backdrop-filter:blur(20px);z-index:2000;display:flex;justify-content:center;align-items:center;opacity:0;pointer-events:none;transition:all .35s var(--e)}
+.ov.open{opacity:1;pointer-events:auto}
+.ov-box{background:var(--card);border-radius:14px;padding:32px;max-width:750px;width:90%;max-height:80vh;overflow-y:auto;border:1px solid rgba(201,169,110,.1);transform:translateY(12px);transition:transform .35s var(--e)}
+.ov.open .ov-box{transform:translateY(0)}
+.ov-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04)}
+.ov-title{font-size:20px;font-weight:700}
+.ov-close{width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.07);background:transparent;color:var(--t2);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s}
+.ov-close:hover{border-color:var(--gold);color:var(--gold)}
+.df{padding:12px 16px;margin-bottom:8px;border-radius:7px;border-right:3px solid transparent}
+.df.r{border-right-color:var(--red);background:rgba(192,57,43,.04)}
+.df.y{border-right-color:var(--yel);background:rgba(212,160,23,.04)}
+.df.g{border-right-color:var(--grn);background:rgba(39,174,96,.04)}
+.df-id{font-size:10px;color:var(--gold);font-weight:600;margin-bottom:2px;direction:ltr;text-align:right}
+.df-text{font-size:13px;line-height:1.6}
+.df-act{font-size:11px;color:var(--t2);margin-top:3px}
+
+/* SECURITY SLIDES */
+.sec-wrap{max-width:900px;width:100%}
+.sec-badge{display:inline-block;font-size:11px;letter-spacing:2px;color:var(--gold);border:1px solid rgba(201,169,110,.2);padding:4px 14px;border-radius:20px;margin-bottom:16px;text-transform:uppercase}
+.sec-title{font-size:clamp(22px,3.5vw,32px);font-weight:700;margin-bottom:28px}
+.sec-points{display:flex;flex-direction:column;gap:14px}
+.sec-point{display:flex;align-items:flex-start;gap:16px;padding:18px 22px;background:var(--card);border-radius:10px;border:1px solid rgba(255,255,255,.04);border-right:3px solid var(--gold)}
+.sec-point-icon{width:36px;height:36px;border-radius:50%;background:rgba(201,169,110,.07);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:16px;flex-shrink:0;margin-top:2px}
+.sec-point-body{flex:1}
+.sec-point-title{font-size:15px;font-weight:600;margin-bottom:4px}
+.sec-point-desc{font-size:13px;color:var(--t2);line-height:1.6}
+.sec-footer{text-align:center;margin-top:24px;font-size:13px;color:var(--gold);font-weight:500}
+
+/* SECURITY DETAIL — FLOW */
+.flow-wrap{max-width:950px;width:100%}
+.flow-title{font-size:clamp(20px,3vw,28px);font-weight:700;margin-bottom:24px;text-align:center}
+.flow-steps{display:flex;flex-direction:column;gap:0}
+.flow-step{display:flex;align-items:flex-start;gap:16px;padding:12px 18px}
+.flow-num{width:30px;height:30px;border-radius:50%;background:rgba(201,169,110,.1);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:13px;font-weight:700;flex-shrink:0;margin-top:2px}
+.flow-body{flex:1}
+.flow-label{font-size:14px;font-weight:600;margin-bottom:2px}
+.flow-desc{font-size:12px;color:var(--t2);line-height:1.5}
+.flow-arrow{text-align:center;color:var(--t3);font-size:14px;padding:2px 0;margin-right:46px}
+.flow-divider{width:100%;height:1px;background:rgba(201,169,110,.1);margin:10px 0}
+.flow-note{text-align:center;margin-top:16px;font-size:12px;color:var(--t3);line-height:1.6;font-style:italic}
+
+/* CLOSE */
+.cl-wrap{text-align:center;max-width:700px}
+.cl-hl{font-size:clamp(26px,4vw,38px);font-weight:700;margin-bottom:32px}
+.cl-steps{display:flex;flex-direction:column;gap:16px;margin-bottom:30px}
+.cl-step{display:flex;align-items:center;gap:14px;font-size:18px;color:var(--t2)}
+.cl-icon{width:36px;height:36px;border-radius:50%;background:rgba(201,169,110,.07);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:15px;flex-shrink:0}
+.cl-line{width:60px;height:1px;background:var(--gold);margin:0 auto 14px}
+.cl-brand{font-size:16px;color:var(--gold)}
+.cl-brand-sub{font-size:13px;color:var(--t2);margin-top:4px}
+.cl-compare{margin-top:30px;padding:18px 24px;background:var(--card);border-radius:10px;border:1px solid rgba(255,255,255,.04);display:inline-block}
+.cl-compare-row{display:flex;justify-content:center;gap:40px;align-items:center;direction:ltr}
+.cl-compare-item{text-align:center}
+.cl-compare-label{font-size:11px;color:var(--t3);margin-bottom:4px}
+.cl-compare-val{font-size:20px;font-weight:700}
+.cl-compare-val.old{color:var(--t2)}
+.cl-compare-val.new{color:var(--gold)}
+.cl-compare-arrow{font-size:20px;color:var(--t3)}
+.cl-compare-note{font-size:11px;color:var(--t3);margin-top:10px}
+
+@media(max-width:900px){
+  .xref-grid,.fin-grid{grid-template-columns:1fr}
+  .rpt-grid{grid-template-columns:repeat(2,1fr)}
+  .riskcards{flex-direction:column;align-items:center}
+}
+
+/* === MOBILE — phones === */
+@media(max-width:600px){
+  :root{
+    --t2:#c4c2bb;  /* was #9a9890 — boost secondary text */
+    --t3:#8a887f;  /* was #5a584f — boost tertiary text */
+    --goldd:#b89a5a;  /* was #8a7344 — boost gold-dim */
+  }
+  .sl{padding:20px 18px 70px}
+
+  /* Nav arrows — hide on mobile, swipe replaces them */
+  .na{display:none}
+
+  /* Nav bar — smaller */
+  .nbar{padding:5px 10px;gap:3px;bottom:10px}
+  .nd{width:6px;height:6px}
+  .nd.sep{width:10px}
+
+  /* Title slide */
+  .tlogo{font-size:clamp(36px,12vw,56px)}
+  .ttag{font-size:clamp(14px,4vw,18px)}
+  .tsub{font-size:11px}
+
+  /* Pain / numbers */
+  .pn{font-size:clamp(40px,15vw,70px)}
+  .pu{font-size:16px;font-weight:500;color:var(--t1)}
+  .pd{font-size:clamp(14px,3.5vw,18px);line-height:1.7;font-weight:400}
+  .pno{font-size:12px;font-weight:400}
+
+  /* Question */
+  .question{font-size:clamp(20px,5.5vw,30px);line-height:1.6;font-weight:400}
+
+  /* Risk cards */
+  .risktitle{font-size:clamp(18px,5vw,26px);margin-bottom:20px;font-weight:700}
+  .riskcard{min-width:unset;max-width:unset;width:100%;padding:18px 16px}
+  .riskcard-icon{font-size:28px;margin-bottom:10px}
+  .riskcard-title{font-size:15px;font-weight:700}
+  .riskcard-desc{font-size:13px;font-weight:400;color:var(--t1)}
+
+  /* Layer slides */
+  .layer-badge{font-size:10px;padding:3px 10px}
+  .layer-title{font-size:clamp(18px,5vw,26px)}
+  .layer-sub{font-size:14px;margin-bottom:20px}
+
+  /* Flags */
+  .flag-item{padding:12px 14px;gap:10px}
+  .flag-circle{width:26px;height:26px;font-size:11px}
+  .flag-cat{font-size:11px;font-weight:700}
+  .flag-text{font-size:14px;font-weight:500;color:var(--t1)}
+  .flag-action{font-size:12px;font-weight:400}
+  .flag-msg{font-size:13px;font-weight:400}
+
+  /* Cross-ref */
+  .xref-grid{grid-template-columns:1fr;gap:12px}
+  .xref-card{padding:16px}
+  .xref-card-title{font-size:15px;font-weight:700}
+  .xref-card-desc{font-size:13px;font-weight:400;color:var(--t1)}
+  .xref-card-example{font-size:12px;padding:8px 10px;font-weight:400}
+  .xref-msg{font-size:13px;font-weight:400}
+
+  /* Financial grid */
+  .fin-grid{grid-template-columns:1fr;gap:10px}
+  .fin-card{padding:14px}
+  .fin-card-title{font-size:14px;font-weight:700}
+  .fin-card-finding{font-size:13px;font-weight:400;color:var(--t1)}
+  .fin-msg{font-size:14px;font-weight:500}
+
+  /* Report dashboard */
+  .rpt-stats{grid-template-columns:repeat(3,1fr);gap:6px}
+  .rpt-stat{padding:12px 6px}
+  .rpt-val{font-size:28px}
+  .rpt-lbl{font-size:11px;font-weight:500}
+  .rpt-sub{font-weight:400}
+  .rpt-grid{grid-template-columns:1fr;gap:8px}
+  .rpt-mod{padding:12px}
+  .rpt-mod-name{font-size:14px;font-weight:700}
+  .rpt-mod-desc{font-size:12px;font-weight:400;color:var(--t1)}
+  .rpt-mod-cta{opacity:1}
+  .rpt-note{font-size:12px;font-weight:400}
+
+  /* Overlay */
+  .ov-box{padding:20px;width:95%;max-height:85vh}
+  .ov-title{font-size:17px;font-weight:700}
+  .df{padding:10px 12px}
+  .df-text{font-size:13px;font-weight:400;color:var(--t1)}
+  .df-act{font-size:11px;font-weight:400}
+
+  /* Security */
+  .sec-point{padding:14px 16px;gap:12px}
+  .sec-point-icon{width:30px;height:30px;font-size:14px}
+  .sec-point-title{font-size:15px;font-weight:700}
+  .sec-point-desc{font-size:13px;font-weight:400;color:var(--t1)}
+  .sec-footer{font-size:13px;font-weight:500}
+
+  /* Flow / data flow */
+  .flow-step{padding:8px 12px;gap:10px}
+  .flow-num{width:26px;height:26px;font-size:12px}
+  .flow-label{font-size:14px;font-weight:600}
+  .flow-desc{font-size:12px;font-weight:400;color:var(--t1)}
+  .flow-arrow{margin-right:36px;font-size:12px}
+  .flow-note{font-size:12px;font-weight:400}
+
+  /* Close slide */
+  .cl-hl{font-size:clamp(20px,6vw,30px);margin-bottom:20px}
+  .cl-step{font-size:15px;gap:10px}
+  .cl-icon{width:30px;height:30px;font-size:13px}
+  .cl-compare{padding:14px 16px}
+  .cl-compare-row{gap:20px}
+  .cl-compare-val{font-size:16px}
+  .cl-compare-note{font-size:10px}
+
+  /* Act label */
+  .albl{font-size:9px;top:10px;right:14px}
+
+  /* Progress bar */
+  .pbar{height:2px}
+}
+</style>
+</head>
+<body>
+
+<div class="pbar" id="prog"></div>
+<div class="albl" id="albl"></div>
+
+<!-- ===== SLIDE 0: TITLE ===== -->
+<div class="sl ts on" data-act="">
+  <div class="center">
+    <div class="a d1" style="margin-bottom:18px">
+      <svg viewBox="0 0 300 220" width="220" height="160" style="display:block;margin:0 auto">
+        <circle cx="125" cy="100" r="62" fill="#3B8BD4" fill-opacity="0.18" stroke="#5BA3E0" stroke-width="4.5"/>
+        <circle cx="175" cy="100" r="62" fill="#BA7517" fill-opacity="0.18" stroke="#D4952A" stroke-width="4.5"/>
+        <circle cx="150" cy="82" r="7.5" fill="#F07070"/>
+        <circle cx="150" cy="100" r="7.5" fill="#F5B942"/>
+        <circle cx="150" cy="118" r="7.5" fill="#7DBB3A"/>
+        <text x="150" y="200" text-anchor="middle" font-family="'Helvetica Neue', Arial, sans-serif" font-size="28" font-weight="500" fill="#E8E6DE" letter-spacing="1.5">SmartDD&#x2122;</text>
+      </svg>
+    </div>
+    <div class="ttag a d2">ניתוח מקדמי חכם לעסקאות</div>
+    <div class="tln a d3"></div>
+    <div class="tsub a d4">Pre-Due Diligence Analysis · Powered by AI</div>
+  </div>
+</div>
+
+<!-- ===== SLIDE 0.5: VALUE PROPOSITION ===== -->
+<div class="sl" data-act="">
+  <div class="pw">
+    <div class="layer-title a d1" style="margin-bottom:28px;font-size:clamp(22px,3.5vw,32px)">מה <span dir="ltr" style="display:inline-block">SmartDD&#x2122;</span> עושה</div>
+    <div class="pd a d2" style="text-align:right;max-width:700px;margin:0 auto"><span dir="ltr" style="display:inline-block">SmartDD&#x2122;</span> מקבל חבילת מסמכים של חברת מטרה ומנתח אותה ב-8 תחומים במקביל — חוזים, משפטי, קניין רוחני, כוח אדם, לקוחות, רגולציה, פיננסי, והצלבות בין-תחומיות.</div>
+    <div class="pd a d3" style="text-align:right;max-width:700px;margin:18px auto 0">התוצאה: דוח Pre-Due Diligence מובנה עם ממצאים מדורגים, תובנות פיננסיות מדוחות כספיים, והצלבות — בין תחומים ובתוכם.</div>
+    <div class="a d4" style="margin-top:36px">
+      <div class="pn" style="font-size:clamp(30px,6vw,52px)">48–72 שעות</div>
+      <div class="pu">לא שבועות</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SLIDE 1: THE WEIGHT ===== -->
+<div class="sl" data-act="ACT I — THE CHALLENGE">
+  <div class="pw">
+    <div class="pn a d1">4–12</div>
+    <div class="pu a d2">שבועות של עבודה אינטנסיבית</div>
+    <div class="pd a d3">זה הזמן שנדרש לבדיקת נאותות מלאה —<br>בהתאם לגודל החברה, מורכבות העסקה, וכמות המסמכים</div>
+    <div class="pno a d4">חברה קטנה-בינונית: 4-6 שבועות · חברה בינונית-גדולה: 6-12 שבועות<br>חברה נסחרת או חוצת גבולות: עד מספר חודשים</div>
+  </div>
+</div>
+
+<!-- ===== SLIDE 2: THE CROSS-REF QUESTION ===== -->
+<div class="sl" data-act="ACT I — THE CHALLENGE">
+  <div class="pw">
+    <div class="question a d1">כמה זמן לוקח לך<br><em>לקרוא את כל המסמכים בתיק</em><br><em>ולהצליב ביניהם</em>?</div>
+  </div>
+</div>
+
+<!-- ===== SLIDE 3: WHAT HIDES ===== -->
+<div class="sl" data-act="ACT I — THE CHALLENGE">
+  <div class="riskwrap">
+    <div class="risktitle a d1">מה מתחבא בין השורות?</div>
+    <div class="riskcards">
+      <div class="riskcard a d2">
+        <div class="riskcard-icon">📋</div>
+        <div class="riskcard-title">עסקאות צד קשור</div>
+        <div class="riskcard-desc">תשלומים לגורמים קשורים שלא מתועדים בהסכם כתוב — קל לפספס כשהנתון מפוזר על פני מספר מסמכים</div>
+      </div>
+      <div class="riskcard a d3">
+        <div class="riskcard-icon">⚖️</div>
+        <div class="riskcard-title">פערים בחוזי העסקה</div>
+        <div class="riskcard-desc">סעיפי המחאת IP חסרים, אי-תחרות שפג תוקפו, תנאים שונים בין עובדים באותו תפקיד</div>
+      </div>
+      <div class="riskcard a d4">
+        <div class="riskcard-icon">🔍</div>
+        <div class="riskcard-title">חשיפות רגולטוריות</div>
+        <div class="riskcard-desc">רישיונות שפגו, מדיניות פרטיות חסרה, ציות שלא עודכן — דברים שנופלים בין הכיסאות כשהמיקוד הוא משפטי</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SLIDE 4: THE QUESTION ===== -->
+<div class="sl" data-act="ACT I — THE CHALLENGE">
+  <div class="pw">
+    <div class="question a d1">מה אם היית יכול לראות<br>את <em>כל התמונה</em><br>לפני שמתחילים?</div>
+  </div>
+</div>
+
+<!-- ===== SLIDE 5: LAYER 1 — FLAGS ===== -->
+<div class="sl" data-act="ACT II — THE SOLUTION">
+  <div class="layer-wrap">
+    <div class="layer-badge a d1">שכבה ראשונה</div>
+    <div class="layer-title a d2">מערכת דגלים — בדיוק לאן להסתכל</div>
+    <div class="layer-sub a d3">המערכת מסמנת כל ממצא ברמזור — אדום, צהוב, ירוק. אתה יודע מיד איפה לתת את תשומת הלב המקצועית שלך.</div>
+    <div class="flag-demo">
+      <div class="flag-item rf a d4">
+        <div class="flag-circle r">🔴</div>
+        <div class="flag-body">
+          <div class="flag-cat">כוח אדם</div>
+          <div class="flag-text">ל-3 מתוך 5 מפתחים אין סעיף המחאת IP בחוזה ההעסקה</div>
+          <div class="flag-action">↩ מומלץ לדרוש חתימה על IP Assignment לפני סגירה</div>
+        </div>
+      </div>
+      <div class="flag-item yf a d5">
+        <div class="flag-circle y">🟡</div>
+        <div class="flag-body">
+          <div class="flag-cat">לקוחות</div>
+          <div class="flag-text">חוזה עם לקוח מוביל פג בעוד 4 חודשים — אין סעיף חידוש אוטומטי</div>
+          <div class="flag-action">↩ מומלץ לדרוש חידוש חוזה לפני סגירה</div>
+        </div>
+      </div>
+      <div class="flag-item gf a d6">
+        <div class="flag-circle g">🟢</div>
+        <div class="flag-body">
+          <div class="flag-cat">חוזים ומשפטי</div>
+          <div class="flag-text">חוזה שכירות בתוקף עד 2028 — אין סעיף שינוי שליטה</div>
+          <div class="flag-action">↩ אין פעולה נדרשת</div>
+        </div>
+      </div>
+    </div>
+    <div class="flag-msg a d7">הדגלים מכוונים את תשומת הלב — ההחלטה המקצועית תמיד שלך</div>
+  </div>
+</div>
+
+<!-- ===== SLIDE 6: LAYER 2 — CROSS-REF ===== -->
+<div class="sl" data-act="ACT II — THE SOLUTION">
+  <div class="layer-wrap">
+    <div class="layer-badge a d1">שכבה שנייה</div>
+    <div class="layer-title a d2">הצלבה בין כל המסמכים — בו-זמנית</div>
+    <div class="layer-sub a d3">העבודה שאתה עושה היום — הצלבה בין חוזים, פרוטוקולים, והסכמים — המערכת עושה אותה על כל המסמכים במקביל. פחות סיכוי לפספס, יותר זמן למה שדורש את השיקול המקצועי שלך.</div>
+    <div class="xref-grid">
+      <div class="xref-card a d4">
+        <div class="xref-card-title"><span class="xref-card-icon">🔗</span> סעיפי שינוי שליטה</div>
+        <div class="xref-card-desc">סריקה של כל ההסכמים בתיק — לקוחות, ספקים, שכירות, העסקה — לאיתור סעיפי Change of Control</div>
+        <div class="xref-card-example">ממצא: רק ללקוח אחד (5% מההכנסות) יש סעיף שינוי שליטה. הסיכון מוגבל.</div>
+      </div>
+      <div class="xref-card a d5">
+        <div class="xref-card-title"><span class="xref-card-icon">📝</span> עקביות בין חוזי העסקה</div>
+        <div class="xref-card-desc">השוואה אוטומטית של סעיפי אי-תחרות, סודיות, והמחאת IP בין כל חוזי ההעסקה</div>
+        <div class="xref-card-example">ממצא: ל-3 מתוך 5 מפתחים חסר סעיף המחאת IP — בעוד ל-2 אחרים הסעיף קיים.</div>
+      </div>
+      <div class="xref-card a d6">
+        <div class="xref-card-title"><span class="xref-card-icon">📅</span> תוקף וחידושים</div>
+        <div class="xref-card-desc">מיפוי כל התאריכים הקריטיים — חוזים שפגים, רישיונות לחידוש, ביטוחים</div>
+        <div class="xref-card-example">ממצא: חוזה לקוח מוביל (38% מההכנסות) פג בעוד 4 חודשים — ללא חידוש אוטומטי.</div>
+      </div>
+      <div class="xref-card a d7">
+        <div class="xref-card-title"><span class="xref-card-icon">⚠️</span> סתירות בין מסמכים</div>
+        <div class="xref-card-desc">איתור חוסר עקביות בין פרוטוקולי דירקטוריון, דוחות כספיים, וחוזים</div>
+        <div class="xref-card-example">ממצא: תשלום שכירות חודשי מופיע בדוחות אך אין הסכם שכירות תואם בתיק.</div>
+      </div>
+    </div>
+    <div class="xref-msg a d8">אותה עבודה — פחות זמן, פחות סיכון לפספס</div>
+  </div>
+</div>
+
+<!-- ===== SLIDE 7: LAYER 3 — FINANCIAL ===== -->
+<div class="sl" data-act="ACT II — THE SOLUTION">
+  <div class="layer-wrap">
+    <div class="layer-badge a d1">שכבה שלישית</div>
+    <div class="layer-title a d2">תובנות פיננסיות</div>
+    <div class="fin-grid" style="margin-top:28px">
+      <div class="fin-card a d3">
+        <div class="fin-card-title">התאמות EBITDA</div>
+        <div class="fin-card-finding">התאמות בסך ₪180,000 סווגו כ"הוצאות חד-פעמיות" — מהוות 18% מ-EBITDA. קרוב לסף שמצדיק בדיקה מעמיקה.</div>
+        <span class="fin-card-flag y">🟡 בינוני</span>
+      </div>
+      <div class="fin-card a d4">
+        <div class="fin-card-title">ריכוזיות הכנסות</div>
+        <div class="fin-card-finding">72% מההכנסות מקטגוריית שירות אחת. לקוח מוביל מהווה 38% מסך ההכנסות. Top 3 = 61%.</div>
+        <span class="fin-card-flag r">🔴 גבוה</span>
+      </div>
+      <div class="fin-card a d5">
+        <div class="fin-card-title">עסקאות צד קשור</div>
+        <div class="fin-card-finding">תשלום שכירות ₪12,000/חודש לחברה בבעלות בן משפחה של הבעלים. ללא הסכם כתוב.</div>
+        <span class="fin-card-flag r">🔴 גבוה</span>
+      </div>
+      <div class="fin-card a d6">
+        <div class="fin-card-title">חשיפת מס</div>
+        <div class="fin-card-finding">שומת מס פתוחה לשנים 2021-2022 בסך ₪320,000. טרם הוסדרה.</div>
+        <span class="fin-card-flag r">🔴 גבוה</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SLIDE 8: THE REPORT ===== -->
+<div class="sl" data-act="ACT III — THE REPORT">
+  <div class="maxw2">
+    <div class="rpt-head">
+      <div class="rpt-title a d1">דוח Pre-DD — חברה לדוגמה בע"מ</div>
+      <div class="rpt-sub a d2">6 מודולים · 19 ממצאים · דוגמה מניתוח אמיתי</div>
+    </div>
+    <div class="rpt-stats">
+      <div class="rpt-stat a d3"><div class="rpt-val r">4</div><div class="rpt-lbl">דגלים אדומים</div></div>
+      <div class="rpt-stat a d4"><div class="rpt-val y">6</div><div class="rpt-lbl">דגלים צהובים</div></div>
+      <div class="rpt-stat a d5"><div class="rpt-val g">9</div><div class="rpt-lbl">ממצאים תקינים</div></div>
+    </div>
+    <div class="rpt-grid">
+      <div class="rpt-mod a d5" onclick="od('financial')"><div class="rpt-mod-head"><span class="rpt-mod-name">ניתוח פיננסי</span><span class="rpt-mod-risk rh">סיכון גבוה</span></div><div class="rpt-mod-desc">עסקת צד קשור, שומת מס פתוחה, התאמות EBITDA</div><div class="rpt-mod-badges"><span class="rb r">2 🔴</span><span class="rb y">2 🟡</span><span class="rb g">3 🟢</span></div><div class="rpt-mod-cta">לחץ לממצאים מפורטים ←</div></div>
+      <div class="rpt-mod a d6" onclick="od('customers')"><div class="rpt-mod-head"><span class="rpt-mod-name">לקוחות וריכוזיות</span><span class="rpt-mod-risk rm">סיכון בינוני</span></div><div class="rpt-mod-desc">לקוח אחד = 38%, חוזה פג בקרוב</div><div class="rpt-mod-badges"><span class="rb r">1 🔴</span><span class="rb y">1 🟡</span><span class="rb g">1 🟢</span></div><div class="rpt-mod-cta">לחץ לממצאים מפורטים ←</div></div>
+      <div class="rpt-mod a d7" onclick="od('hr')"><div class="rpt-mod-head"><span class="rpt-mod-name">כוח אדם</span><span class="rpt-mod-risk rm">סיכון בינוני</span></div><div class="rpt-mod-desc">חסרים הסכמי IP, תלות ב-CTO</div><div class="rpt-mod-badges"><span class="rb r">1 🔴</span><span class="rb y">1 🟡</span><span class="rb g">1 🟢</span></div><div class="rpt-mod-cta">לחץ לממצאים מפורטים ←</div></div>
+      <div class="rpt-mod a d8" onclick="od('ip')"><div class="rpt-mod-head"><span class="rpt-mod-name">קניין רוחני</span><span class="rpt-mod-risk rm">סיכון בינוני</span></div><div class="rpt-mod-desc">בעלות IP נקייה, חשיפת GPL</div><div class="rpt-mod-badges"><span class="rb y">1 🟡</span><span class="rb g">1 🟢</span></div><div class="rpt-mod-cta">לחץ לממצאים מפורטים ←</div></div>
+      <div class="rpt-mod a d9" onclick="od('legal')"><div class="rpt-mod-head"><span class="rpt-mod-name">חוזים ומשפטי</span><span class="rpt-mod-risk rl">סיכון נמוך</span></div><div class="rpt-mod-desc">אין תביעות, רישום תאגידי נקי</div><div class="rpt-mod-badges"><span class="rb g">3 🟢</span></div><div class="rpt-mod-cta">לחץ לממצאים מפורטים ←</div></div>
+      <div class="rpt-mod a d10" onclick="od('regulation')"><div class="rpt-mod-head"><span class="rpt-mod-name">רגולציה וציות</span><span class="rpt-mod-risk rm">סיכון בינוני</span></div><div class="rpt-mod-desc">רישיון בתוקף, חסרה מדיניות פרטיות</div><div class="rpt-mod-badges"><span class="rb y">1 🟡</span><span class="rb g">1 🟢</span></div><div class="rpt-mod-cta">לחץ לממצאים מפורטים ←</div></div>
+    </div>
+    <div class="rpt-note a d10">הנתונים מבוססים על ניתוח אמיתי של חברה לדוגמה</div>
+  </div>
+</div>
+
+<!-- Security slides removed — details shared only when asked -->
+
+
+<!-- ===== SLIDE 11: THE CLOSE ===== -->
+<div class="sl" data-act="ACT IV — NEXT STEP">
+  <div class="cl-wrap">
+    <div class="cl-hl a d1">פיילוט — שלח · קבל · השווה</div>
+    <div class="cl-steps">
+      <div class="cl-step a d2"><div class="cl-icon">①</div><span>שלח תיקי DD — אנונימיים או אמיתיים</span></div>
+      <div class="cl-step a d3"><div class="cl-icon">②</div><span>קבל דוח Pre-DD מלא ומפורט</span></div>
+      <div class="cl-step a d4"><div class="cl-icon">③</div><span>השווה לתוצאות הבדיקה הידנית שלך</span></div>
+    </div>
+    <div class="cl-line a d5"></div>
+    <div class="a d6" style="margin-bottom:10px">
+      <svg viewBox="0 0 200 160" width="120" height="96" style="display:block;margin:0 auto">
+        <circle cx="82" cy="58" r="48" fill="#3B8BD4" fill-opacity="0.18" stroke="#5BA3E0" stroke-width="3.5"/>
+        <circle cx="118" cy="58" r="48" fill="#BA7517" fill-opacity="0.18" stroke="#D4952A" stroke-width="3.5"/>
+        <circle cx="100" cy="43" r="5.5" fill="#F07070"/>
+        <circle cx="100" cy="58" r="5.5" fill="#F5B942"/>
+        <circle cx="100" cy="73" r="5.5" fill="#7DBB3A"/>
+        <text x="100" y="145" text-anchor="middle" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="500" fill="#E8E6DE" letter-spacing="1">SmartDD&#x2122;</text>
+      </svg>
+    </div>
+    <div class="cl-brand-sub a d6">Pre-Due Diligence · Powered by AI</div>
+    <div class="a d7" style="margin-top:28px;font-size:15px;color:var(--t2);font-style:italic"><span dir="ltr" style="display:inline-block">SmartDD&#x2122;</span> בשיתוף עם משרדי עורכי דין ורואי חשבון מובילים</div>
+  </div>
+</div>
+
+<!-- OVERLAY -->
+<div class="ov" id="ov" onclick="if(event.target===this)cd()">
+  <div class="ov-box">
+    <div class="ov-head"><span class="ov-title" id="ovT"></span><button class="ov-close" onclick="cd()">✕</button></div>
+    <div id="ovB"></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<button class="na p" onclick="go(-1)">→</button>
+<button class="na n" onclick="go(1)">←</button>
+<div class="nbar" id="nb"></div>
+
+<script>
+const D={
+  financial:{t:'ניתוח פיננסי',f:[
+    {id:'F17',l:'r',t:'תשלום שכירות ₪12,000/חודש לחברה בבעלות בן משפחה — ללא הסכם כתוב.',a:'מומלץ לדרוש הסכם בתנאי שוק.'},
+    {id:'F21',l:'r',t:'שומת מס פתוחה 2021-2022 בסך ₪320,000. טרם הוסדרה.',a:'מומלץ לדרוש הסדרה או escrow.'},
+    {id:'F2',l:'y',t:'שירותי ענן מהווים 72% מההכנסות — ריכוזיות בקטגוריה אחת.',a:'מומלץ לבדוק אסטרטגיית גיוון.'},
+    {id:'F8',l:'y',t:'EBITDA מנוטרל כולל התאמה של ₪180,000 — 18% מ-EBITDA.',a:'מומלץ לאמת עם רו"ח.'},
+    {id:'F1',l:'g',t:'הכנסות בצמיחה עקבית: ₪4.2M–₪5.8M על פני 3 שנים. CAGR 17.5%.',a:'אין פעולה נדרשת.'},
+    {id:'F3',l:'g',t:'68% מההכנסות חוזרות (מנויים שנתיים).',a:'אין פעולה נדרשת.'},
+    {id:'F7',l:'g',t:'מרווח גולמי יציב סביב 62% לאורך 3 שנים.',a:'אין פעולה נדרשת.'},
+  ]},
+  customers:{t:'לקוחות וריכוזיות',f:[
+    {id:'C1',l:'r',t:'לקוח מוביל = 38% מההכנסות. Top 3 = 61%.',a:'מומלץ סעיף שימור לקוחות בהסכם.'},
+    {id:'C2',l:'y',t:'חוזה לקוח מוביל פג בעוד 4 חודשים. אין חידוש אוטומטי.',a:'מומלץ לדרוש חידוש לפני סגירה.'},
+    {id:'C5',l:'g',t:'רק ללקוח אחד סעיף שינוי שליטה (5% מההכנסות).',a:'מומלץ ויתור בכתב.'},
+  ]},
+  hr:{t:'כוח אדם והון אנושי',f:[
+    {id:'H6',l:'r',t:'ל-3 מתוך 5 מפתחים אין סעיף המחאת IP.',a:'מומלץ חתימה לפני סגירה.'},
+    {id:'H1',l:'y',t:'CTO יחיד עם גישה לארכיטקטורת הליבה. אין תכנית מעבר.',a:'מומלץ Knowledge Transfer.'},
+    {id:'H3',l:'g',t:'לכל 12 העובדים חוזי העסקה חתומים.',a:'אין פעולה נדרשת.'},
+  ]},
+  ip:{t:'קניין רוחני וטכנולוגיה',f:[
+    {id:'IP5',l:'y',t:'שימוש ב-2 ספריות GPL — חשיפה פוטנציאלית.',a:'מומלץ בדיקת יועץ IP.'},
+    {id:'IP1',l:'g',t:'תוכנת הליבה רשומה על שם החברה. מותג רשום.',a:'אין פעולה נדרשת.'},
+  ]},
+  legal:{t:'חוזים ומשפטי',f:[
+    {id:'L1',l:'g',t:'חוזה שכירות בתוקף עד 2028. אין סעיף שינוי שליטה.',a:'אין פעולה נדרשת.'},
+    {id:'L7',l:'g',t:'אין תביעות פתוחות או מאוימות.',a:'אין פעולה נדרשת.'},
+    {id:'L10',l:'g',t:'החברה רשומה כדין ברשם החברות.',a:'אין פעולה נדרשת.'},
+  ]},
+  regulation:{t:'רגולציה וציות',f:[
+    {id:'R5',l:'y',t:'החברה מעבדת מידע אישי — אין מדיניות פרטיות באתר.',a:'מומלץ לפרסם מדיניות ולמנות ממונה.'},
+    {id:'R1',l:'g',t:'רישיון עסק בתוקף.',a:'אין פעולה נדרשת.'},
+  ]},
+};
+
+const sls=document.querySelectorAll('.sl');
+let cur=0,busy=false;
+
+(function(){
+  const nb=document.getElementById('nb');
+  sls.forEach((s,i)=>{
+    const d=document.createElement('button');
+    d.className='nd'+(i===0?' on':'');
+    const act=s.dataset.act,prev=i>0?sls[i-1].dataset.act:'';
+    if(act&&act!==prev)d.classList.add('sep');
+    d.onclick=()=>goTo(i);
+    nb.appendChild(d);
+  });
+})();
+
+function goTo(n){
+  if(busy||n===cur||n<0||n>=sls.length)return;
+  busy=true;
+  sls[cur].classList.remove('on');cur=n;sls[cur].classList.add('on');
+  document.querySelectorAll('.nd').forEach((d,i)=>d.classList.toggle('on',i===cur));
+  document.getElementById('prog').style.width=(cur/(sls.length-1)*100)+'%';
+  document.getElementById('albl').textContent=sls[cur].dataset.act||'';
+  setTimeout(()=>{busy=false},700);
+}
+function go(d){goTo(cur+d)}
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('ov').classList.contains('open')){if(e.key==='Escape')cd();return}
+  if(['ArrowLeft','ArrowDown',' '].includes(e.key)){e.preventDefault();go(1)}
+  if(['ArrowRight','ArrowUp'].includes(e.key)){e.preventDefault();go(-1)}
+});
+
+/* Touch swipe navigation */
+let tx=0,ty=0,ts=false;
+document.addEventListener('touchstart',e=>{
+  if(document.getElementById('ov').classList.contains('open'))return;
+  tx=e.changedTouches[0].screenX;ty=e.changedTouches[0].screenY;ts=true;
+},{passive:true});
+document.addEventListener('touchend',e=>{
+  if(!ts)return;ts=false;
+  const dx=e.changedTouches[0].screenX-tx;
+  const dy=e.changedTouches[0].screenY-ty;
+  if(Math.abs(dx)<50||Math.abs(dy)>Math.abs(dx))return;
+  /* RTL: swipe left = next, swipe right = prev */
+  if(dx<0)go(1); else go(-1);
+},{passive:true});
+
+function od(k){
+  const d=D[k];if(!d)return;
+  document.getElementById('ovT').textContent=d.t;
+  let h='';
+  d.f.forEach(f=>{h+=`<div class="df ${f.l}"><div class="df-id">${f.id}</div><div class="df-text">${f.t}</div><div class="df-act">↩ ${f.a}</div></div>`});
+  document.getElementById('ovB').innerHTML=h;
+  document.getElementById('ov').classList.add('open');
+}
+function cd(){document.getElementById('ov').classList.remove('open')}
+</script>
+</body>
+</html>
